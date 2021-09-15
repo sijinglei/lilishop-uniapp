@@ -107,6 +107,7 @@ http.setConfig((config) => {
 
   /* 设置全局配置 */
   config.baseURL = api.buyer;
+
   config.header = {
     ...config.header,
   };
@@ -121,6 +122,9 @@ http.interceptors.request.use(
   (config) => {
     /* 请求之前拦截器。可以使用async await 做异步操作 */
     let accessToken = storage.getAccessToken();
+	if(config.url.indexOf('/com/')>-1){
+		   config.baseURL = '' 
+	}
     if (accessToken) {
       const nonce = Foundation.randomString(6);
       const timestamp = parseInt(new Date().getTime() / 1000);

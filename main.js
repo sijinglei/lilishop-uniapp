@@ -11,9 +11,9 @@ import store from "./store";
  * 
  */
 // #ifdef H5
-import airBtn from "@/components/m-airbtn/index.vue";
-let btn = Vue.component("airBtn", airBtn); //全局注册
-document.body.appendChild(new btn().$mount().$el);
+// import airBtn from "@/components/m-airbtn/index.vue";
+// let btn = Vue.component("airBtn", airBtn); //全局注册
+// document.body.appendChild(new btn().$mount().$el);
 // #endif
 
 

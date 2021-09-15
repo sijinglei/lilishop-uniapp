@@ -1,6 +1,6 @@
 {
     "name" : "lili商城",
-    "appid" : "__UNI__C100675",
+    "appid" : "__UNI__77BD72C",
     "description" : "",
     "versionName" : "4.0.40",
     "versionCode" : 4000040,
@@ -208,7 +208,7 @@
         "devServer" : {
             "disableHostCheck" : true,
             "port" : 8080,
-            "https" : false,
+            "https" : true,
             "proxy" : {
                 "/buy" : {
                     "target" : "http://192.168.0.131:8888",
