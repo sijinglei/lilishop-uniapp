@@ -22,6 +22,34 @@
           {{ item.name }}
         </view>
       </scroll-view>
+
+      <div class="r-list">
+        <scroll-view scroll-x scroll-with-animation class="c-item-wrap">
+          <div
+            class="c-item"
+            v-for="item in goodsCateList"
+            :key="item.id"
+            @click="getGoods(item.id)"
+            :class="{ active: item.id == params.categoryId }"
+          >
+            {{ item.name }}
+          </div>
+        </scroll-view>
+        <div class="c-more" @click="isShowMore = !isShowMore">
+          <uni-icons color="#BABABA" type="arrowdown"></uni-icons>
+        </div>
+      </div>
+      <div class="top-list" v-show="isShowMore">
+        <div
+          class="c-item"
+          v-for="item in goodsCateList"
+          :key="item.id"
+          @click="getGoods(item.id)"
+          :class="{ active: item.id == params.categoryId }"
+        >
+          {{ item.name }}
+        </div>
+      </div>
       <scroll-view
         scroll-with-animation
         scroll-y
@@ -50,33 +78,6 @@
             </view>
           </view>
         </view> -->
-        <view class="r-list">
-          <view class="c-item-wrap">
-            <view
-              class="c-item"
-              v-for="item in goodsCateList"
-              :key="item.id"
-              @click="getGoods(item.id)"
-              :class="{ active: item.id == params.categoryId }"
-            >
-              {{ item.name }}
-            </view>
-          </view>
-          <view class="c-more" @click="isShowMore = !isShowMore">
-            <uni-icons color="#BABABA" type="arrowdown"></uni-icons>
-          </view>
-        </view>
-        <view class="top-list" v-show="isShowMore">
-          <view
-            class="c-item"
-            v-for="item in goodsCateList"
-            :key="item.id"
-            @click="getGoods(item.id)"
-            :class="{ active: item.id == params.categoryId }"
-          >
-            {{ item.name }}
-          </view>
-        </view>
         <div class="goodsClass">
           <u-row
             v-for="(item, index) in goodsList"
@@ -175,7 +176,7 @@
 <script>
 import { getCategoryList, getGoodsList, getGoodsRelated } from '@/api/goods.js'
 import * as API_trade from '@/api/trade.js'
-import Views from '../home/views.vue'
+// import Views from '../home/views.vue'
 export default {
   data() {
     return {
@@ -450,7 +451,7 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
   .right-aside {
     flex: 1;
     overflow: hidden;
-    padding: 20rpx 0 0 30rpx;
+    padding: 60rpx 0 0 0;
   }
 
   .top-img {
@@ -503,10 +504,13 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
   }
   // 新分类
   .r-list {
-    position: relative;
+    position: fixed;
     height: 60rpx;
-    overflow-x: auto;
-    width: 100%;
+    z-index: 5;
+    top: 82rpx;
+    right: 0;
+    width: calc(100% - 230rpx);
+    background-color: #fff;
     &::after {
       content: '';
       position: absolute;
@@ -519,11 +523,15 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
     .c-item-wrap {
       display: flex;
       height: 100%;
-      width: 100%;
       justify-content: flex-start;
       align-items: center;
       overflow-x: auto;
+      white-space: nowrap;
       -webkit-overflow-scrolling: touch;
+      /deep/.uni-scroll-view-content {
+        display: flex;
+        align-items: center;
+      }
     }
     .c-more {
       position: absolute;
@@ -539,7 +547,6 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
     }
   }
   .c-item {
-    flex: none;
     height: 40rpx;
     line-height: 40rpx;
     font-size: 20rpx;
@@ -548,10 +555,11 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
     color: #000;
     background-color: #f1f5f9;
     margin-right: 10rpx;
-    flex-basis: 44rpx;
     flex-shrink: 0;
+    flex-grow: 0;
+    flex-basis: auto;
+    display: inline-block;
     text-align: center;
-    white-space: nowrap;
     &.active {
       background-color: #e9ece9;
       color: #ff6b35;
@@ -562,9 +570,10 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
     flex-wrap: wrap;
     background: #fff;
     z-index: 4;
-    position: absolute;
-    top: 64rpx;
-    left: 0;
+    position: fixed;
+    top: 140rpx;
+    right: 0;
+    width: calc(100% - 230rpx);
     .c-item {
       margin: 5rpx;
     }
