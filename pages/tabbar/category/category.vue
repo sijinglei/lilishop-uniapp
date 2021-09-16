@@ -146,7 +146,7 @@
                   已售 {{ item.buyCount || '0' }}
                 </span>
                 <span style="float: right; font-size: 22rpx">
-                  {{ item.commentNum || '0' }}条评论
+                   {{ item.commentNum || '0' }}条评论
                 </span>
               </div> -->
             </u-col>
