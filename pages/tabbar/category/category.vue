@@ -28,6 +28,9 @@
         class="right-aside"
         :upper-threshold="-100"
         :lower-threshold="-100"
+        enableBackToTop="true"
+        lower-threshold="250"
+        @scrolltolower="loadmore()"
       >
         <!-- 头部图片 -->
         <!--    <view class="top-img" id="main-top">
@@ -49,7 +52,13 @@
         </view> -->
         <view class="r-list">
           <view class="c-item-wrap">
-            <view class="c-item" v-for="item in categoryList" :key="item.id">
+            <view
+              class="c-item"
+              v-for="item in goodsCateList"
+              :key="item.id"
+              @click="getGoods(item.id)"
+              :class="{ active: item.id == params.categoryId }"
+            >
               {{ item.name }}
             </view>
           </view>
@@ -58,17 +67,114 @@
           </view>
         </view>
         <view class="top-list" v-show="isShowMore">
-          <view class="c-item" v-for="item in categoryList" :key="item.id">
+          <view
+            class="c-item"
+            v-for="item in goodsCateList"
+            :key="item.id"
+            @click="getGoods(item.id)"
+            :class="{ active: item.id == params.categoryId }"
+          >
             {{ item.name }}
           </view>
         </view>
+        <div class="goodsClass">
+          <u-row
+            v-for="(item, index) in goodsList"
+            :key="index"
+            class="goodsRow"
+            style="
+              margin: 20rpx 0;
+              padding: 10px 0;
+              border-bottom: 1rpx solid #f5f3f3;
+              border-radius: 0;
+            "
+          >
+            <u-col
+              :span="4"
+              @click.native="navigateToDetailPage(item)"
+              class="switchType1"
+            >
+              <u-image
+                width="150rpx"
+                height="150rpx"
+                class="imgGoods"
+                :src="item.content.thumbnail"
+              >
+                <u-loading slot="loading"></u-loading>
+              </u-image>
+            </u-col>
+            <u-col
+              :span="6"
+              @click.native="navigateToDetailPage(item)"
+              class="switchType2"
+            >
+              <div
+                class="title clamp3"
+                style="
+                  font-size: 28rpx;
+                  text-align: left;
+                  letter-spacing: 0;
+                  padding-top: 0;
+                "
+              >
+                {{ item.content.goodsName }}
+              </div>
+              <view class="price-box">
+                <div class="price" v-if="item.content.price != undefined">
+                  ¥
+                  <span>{{ formatPrice(item.content.price)[0] }}</span>
+                  .{{ formatPrice(item.content.price)[1] }}
+                </div>
+              </view>
+              <div class="promotion">
+                <div
+                  v-for="(promotionItem, promotionIndex) in getPromotion(item)"
+                  :key="promotionIndex"
+                >
+                  <span v-if="promotionItem.indexOf('COUPON') != -1">劵</span>
+                  <span v-if="promotionItem.indexOf('FULL_DISCOUNT') != -1">
+                    满减
+                  </span>
+                  <span v-if="promotionItem.indexOf('SECKILL') != -1">
+                    秒杀
+                  </span>
+                </div>
+              </div>
+              <!-- <div style="overflow: hidden" class="countConfig">
+                <span style="float: left; font-size: 22rpx">
+                  已售 {{ item.buyCount || '0' }}
+                </span>
+                <span style="float: right; font-size: 22rpx">
+                  {{ item.commentNum || '0' }}条评论
+                </span>
+              </div> -->
+            </u-col>
+            <u-col
+              :span="2"
+              @click.native="navigateToDetailPage(item)"
+              class="switchType3"
+            >
+              <view class="buy" @click.stop="addToCartOrBuy(item.id)">
+                <uni-icons color="#ffffff" type="cart-filled"></uni-icons>
+                <text class="num" v-if="item.goodNums && item.goodNums > 0">
+                  {{ item.goodNums }}
+                </text>
+              </view>
+            </u-col>
+          </u-row>
+        </div>
+        <uni-load-more
+          :status="loadingType"
+          @loadmore="loadmore()"
+        ></uni-load-more>
       </scroll-view>
     </view>
   </view>
 </template>
 
 <script>
-import { getCategoryList } from '@/api/goods.js'
+import { getCategoryList, getGoodsList, getGoodsRelated } from '@/api/goods.js'
+import * as API_trade from '@/api/trade.js'
 import Views from '../home/views.vue'
 export default {
   data() {
@@ -79,6 +185,18 @@ export default {
       categoryList: [], //右侧分类数据列表
       topImg: '', //顶部图片
       isShowMore: false,
+      loadingType: 'more', //加载更多状态
+      params: {
+        pageNumber: 1,
+        pageSize: 10,
+        // sort: 'grade_asc',
+        sort: 'releaseTime',
+        order: 'desc',
+        keyword: '',
+      },
+      goodsList: [],
+      goodsCateList: [],
+      goodIdNum: [],
     }
   },
   onLoad() {
@@ -87,6 +205,9 @@ export default {
     // 小程序默认分享
     uni.showShareMenu({ withShareTicket: true })
     // #endif
+  },
+  onShow() {
+    this.getGoodCart()
   },
   methods: {
     /**
@@ -114,19 +235,116 @@ export default {
     loadListContent(index) {
       this.topImg = this.tabList[index]
       this.categoryList = this.tabList[index].children
+      this.categoryList.forEach(item => {
+        this.goodsCateList.push(...item.children)
+      })
       console.log('categoryList==', this.categoryList)
+      this.getGoods(this.categoryList[0].children[0].id)
     },
     /**
      * 一级分类点击
      */
     tabtap(item, i) {
       this.isShowMore = false
+      this.goodsList = []
+      this.goodsCateList = []
       if (item.id != this.currentId) {
         this.currentId = item.id
         this.loadListContent(i)
       }
     },
+    getGoods(cateId) {
+      this.params.pageNumber = 1
+      this.params.pageSize = 10
+      this.params.categoryId = cateId
+      this.isShowMore = false
+      uni.pageScrollTo({
+        duration: 300,
+        scrollTop: 0,
+      })
+      this.loadGoodData('refresh', 1)
+      uni.showLoading({
+        title: '正在加载',
+      })
+    },
+    loadmore() {
+      this.params.pageNumber++
+      this.loadGoodData()
+    },
+    async loadGoodData(type, loading) {
+      this.loadingType = 'loading'
+      if (type == 'refresh') {
+        this.goodsList = []
+      }
+      //没有更多直接返回 #TODO
+      let goodsList = await getGoodsList(this.params)
 
+      if (goodsList.data.result.content.length < 10) {
+        this.loadingType = 'noMore'
+      }
+      this.goodsList.push(...goodsList.data.result.content)
+      this.getGoodCart()
+      uni.hideLoading()
+    },
+    navigateToDetailPage(item) {
+      uni.navigateTo({
+        url: `/pages/product/goods?id=${item.content.id}&goodsId=${item.content.goodsId}`,
+      })
+    },
+    // 数据去重一下 只显示一次 减免 劵 什么的
+    getPromotion(item) {
+      if (item.promotionMap) {
+        let array = []
+        Object.keys(item.promotionMap).forEach(child => {
+          if (!array.includes(child.split('-')[0])) {
+            array.push(child.split('-')[0])
+          }
+        })
+
+        return array
+      }
+    },
+
+    // 格式化金钱  1999 --> [1999,00]
+    formatPrice(val) {
+      if (typeof val == 'undefined') {
+        return val
+      }
+      return val.toFixed(2).split('.')
+    },
+    addToCartOrBuy(goodId) {
+      let data = {
+        skuId: goodId,
+        num: 1,
+      }
+      API_trade.addToCart(data).then(res => {
+        if (res.data.code == 200) {
+          uni.showToast({
+            title: '商品已添加到购物车',
+            icon: 'none',
+          })
+          this.getGoodCart()
+        }
+      })
+    },
+    getGoodCart() {
+      API_trade.getCarts().then(result => {
+        if (result.data.success) {
+          let cartDatail = result.data.result
+          console.log('this.cartDetail=', cartDatail)
+          console.log('this.goodsList=', this.goodsList)
+          let skuList = cartDatail.skuList
+          this.goodsList.forEach(item => {
+            let obj = skuList.find(d => d.goodsSku.id == item.id)
+            let num = 0
+            if (obj) {
+              num = obj.num
+            }
+            this.$set(item, 'goodNums', num)
+          })
+        }
+      })
+    },
     navigateToList(sid, tid) {
       uni.navigateTo({
         url: `/pages/navigation/search/searchPage?category=${tid}`,
@@ -137,9 +355,33 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '../../navigation/search/search.scss';
 page {
   height: 100%;
   background-color: #fdfaff;
+}
+.buy {
+  width: 50rpx;
+  height: 50rpx;
+  border-radius: 50%;
+  background-color: rgb(88, 240, 133);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  .num {
+    font-size: 22rpx;
+    color: #fff;
+    background: red;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+  }
 }
 /* 解决小程序和app滚动条的问题 */
 /* #ifdef MP-WEIXIN || APP-PLUS */
@@ -311,7 +553,7 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
     text-align: center;
     white-space: nowrap;
     &.active {
-      background-color: #bcf4b5;
+      background-color: #e9ece9;
       color: #ff6b35;
     }
   }
@@ -320,6 +562,9 @@ uni-scroll-view .uni-scroll-view::-webkit-scrollbar {
     flex-wrap: wrap;
     background: #fff;
     z-index: 4;
+    position: absolute;
+    top: 64rpx;
+    left: 0;
     .c-item {
       margin: 5rpx;
     }
