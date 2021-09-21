@@ -14,8 +14,8 @@ const prod = {
     // tjmarket.ca
     // common: 'http://15.222.2.223:8888',
     // buyer: 'http://15.222.2.223:8890',
-    common: 'http://common-api.tjmarket.ca',
-    buyer: 'http://buyer-api.tjmarket.ca',
+    common: 'https://common-api.tjmarket.ca',
+    buyer: 'https://buyer-api.tjmarket.ca',
 }
 
 //默认生产环境
