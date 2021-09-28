@@ -2,78 +2,121 @@
   <div class="box">
     <u-navbar class="navbar">
       <view class="slot-wrap">
-        <u-search placeholder="搜索直播间" @custom="searchLive" @clear="clear" @search="searchLive" v-model="keyword"></u-search>
+        <u-search
+          placeholder="搜索直播间"
+          @custom="searchLive"
+          @clear="clear"
+          @search="searchLive"
+          v-model="keyword"
+        ></u-search>
       </view>
     </u-navbar>
     <!-- 轮播图 -->
-    <u-swiper @click="clickSwiper" class="swiper" :effect3d="true" :list="swiperImg">
-
-    </u-swiper>
-    <u-tabs :is-scroll="false" @change="changeTabs" :current="current" :active-color="activeColor" inactive-color="#606266" ref="tabs" :list="tabs"></u-tabs>
+    <u-swiper
+      @click="clickSwiper"
+      class="swiper"
+      :effect3d="true"
+      :list="swiperImg"
+    ></u-swiper>
+    <u-tabs
+      :is-scroll="false"
+      @change="changeTabs"
+      :current="current"
+      :active-color="activeColor"
+      inactive-color="#606266"
+      ref="tabs"
+      :list="tabs"
+    ></u-tabs>
 
     <div class="wrapper">
       <!-- 直播中 全部 直播回放 -->
-      <div class="live-item" :class="{'invalid':item.status == 'END'}" v-for="(item,index) in liveList" :key="index" @click="handleLivePlayer(item)">
+      <div
+        class="live-item"
+        :class="{ invalid: item.status == 'END' }"
+        v-for="(item, index) in liveList"
+        :key="index"
+        @click="handleLivePlayer(item)"
+      >
         <div class="live-cover-img">
           <div class="tips">
             <div class="live-box">
               <image class="live-gif" src="./static/live.gif"></image>
             </div>
-            <span>{{item.status == 'END' ? '已结束' : item.status =='NEW' ? '未开始' : '直播中'}}</span>
+            <span>
+              {{
+                item.status == 'END'
+                  ? '已结束'
+                  : item.status == 'NEW'
+                  ? '未开始'
+                  : '直播中'
+              }}
+            </span>
           </div>
           <div class="bg"></div>
           <u-image width="326" height="354" :src="item.shareImg" />
         </div>
         <div class="live-goods">
           <div class="live-goods-name">
-            {{item.name}}
+            {{ item.name }}
           </div>
           <div class="live-store">
-            <span class="wes">lilishop</span>
+            <span class="wes">tjmarket</span>
           </div>
           <div class="live-goods-list">
             <div class="live-goods-item">
-              <u-image border-radius="20" :src="item.roomGoodsList ? item.roomGoodsList[0] : ''" height="140"></u-image>
+              <u-image
+                border-radius="20"
+                :src="item.roomGoodsList ? item.roomGoodsList[0] : ''"
+                height="140"
+              ></u-image>
             </div>
             <div class="live-goods-item">
-              <u-image border-radius="20" :src="item.roomGoodsList ? item.roomGoodsList[1] : ''" height="140"></u-image>
+              <u-image
+                border-radius="20"
+                :src="item.roomGoodsList ? item.roomGoodsList[1] : ''"
+                height="140"
+              ></u-image>
             </div>
           </div>
         </div>
       </div>
-      <u-loadmore v-if="liveList.length > 10" bg-color="#f8f8f8" :status="status" />
+      <u-loadmore
+        v-if="liveList.length > 10"
+        bg-color="#f8f8f8"
+        :status="status"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import { getLiveList } from "@/api/promotions.js";
+import { getLiveList } from '@/api/promotions.js'
 export default {
   data() {
     return {
-      status: "loadmore",
+      status: 'loadmore',
       activeColor: this.$lightColor,
       current: 0, // 当前tabs索引
-      keyword: "", //搜索直播间
+      keyword: '', //搜索直播间
       // 标签栏
       tabs: [
         {
-          name: "直播中",
+          name: '直播中',
         },
         {
-          name: "全部",
+          name: '全部',
         },
       ],
       // 导航栏的配置
       background: {
-        background: "#ff9f28",
+        background: '#ff9f28',
       },
       // 直播间params
       params: [
         {
           pageNumber: 1,
           pageSize: 10,
-          status: "START",
+          status: 'START',
         },
         {
           pageNumber: 1,
@@ -95,75 +138,75 @@ export default {
       swiperImg: [
         {
           image:
-            "https://lilishop-oss.oss-cn-beijing.aliyuncs.com/48d789cb9c864b7b87c1c0f70996c3e8.jpeg",
+            'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/48d789cb9c864b7b87c1c0f70996c3e8.jpeg',
         },
       ],
-    };
+    }
   },
   onShow() {
-    this.params[this.current].pageNumber = 1;
-    this.liveList = [];
-    this.getLives();
-    this.getRecommendLives();
+    this.params[this.current].pageNumber = 1
+    this.liveList = []
+    this.getLives()
+    this.getRecommendLives()
   },
   onReachBottom() {
-    this.params[this.current].pageNumber++;
-    this.getLives();
+    this.params[this.current].pageNumber++
+    this.getLives()
   },
   methods: {
     /**
      * 点击标签栏切换
      */
     changeTabs(index) {
-      this.current = index;
-      this.init();
+      this.current = index
+      this.init()
     },
 
     /**
      * 初始化直播间
      */
     init() {
-      this.liveList = [];
-      this.status = "loadmore";
-      this.getLives();
+      this.liveList = []
+      this.status = 'loadmore'
+      this.getLives()
     },
 
     /**
      * 清除搜索内容
      */
     clear() {
-      delete this.params[this.current].name;
-      this.init();
+      delete this.params[this.current].name
+      this.init()
     },
     /**
      * 点击顶部推荐直播间
      */
     clickSwiper(val) {
-      console.log(this.swiperImg[val]);
-      this.handleLivePlayer(this.swiperImg[val]);
+      console.log(this.swiperImg[val])
+      this.handleLivePlayer(this.swiperImg[val])
     },
 
     /**
      * 搜索直播间
      */
     searchLive(val) {
-      this.params[this.current].pageNumber = 1;
-      this.params[this.current].name = val;
-      this.init();
+      this.params[this.current].pageNumber = 1
+      this.params[this.current].name = val
+      this.init()
     },
     /**
      * 获取推荐直播间
      */
     async getRecommendLives() {
-      this.status = "loading";
-      let recommendLives = await getLiveList(this.recommendParams);
+      this.status = 'loading'
+      let recommendLives = await getLiveList(this.recommendParams)
       if (recommendLives.data.success) {
         // 推荐直播间
         if (recommendLives.data.result.records.length != 0) {
-          this.status = "loadmore";
-          this.recommendLives = recommendLives.data.result.records;
+          this.status = 'loadmore'
+          this.recommendLives = recommendLives.data.result.records
         } else {
-          this.status = "noMore";
+          this.status = 'noMore'
         }
 
         /**
@@ -174,19 +217,19 @@ export default {
 
         if (this.recommendLives.length == 0) {
           if (this.liveList[0].shareImg) {
-            this.$set(this, "swiperImg", [
+            this.$set(this, 'swiperImg', [
               {
                 image: this.liveList[0].shareImg,
                 roomId: this.liveList[0].roomId,
               },
-            ]);
+            ])
           }
         } else {
-          this.recommendLives.forEach((item) => {
-            this.$set(this, "swiperImg", [
+          this.recommendLives.forEach(item => {
+            this.$set(this, 'swiperImg', [
               { image: item.shareImg, roomId: item.roomId },
-            ]);
-          });
+            ])
+          })
         }
       }
     },
@@ -195,28 +238,28 @@ export default {
      * 获取直播间
      */
     async getLives() {
-      this.status = "loading";
-      let res = await getLiveList(this.params[this.current]);
+      this.status = 'loading'
+      let res = await getLiveList(this.params[this.current])
       // 直播间
       if (res.data.success) {
         if (res.data.result.records.length != 0) {
-          this.status = "loadmore";
-          this.liveList.push(...res.data.result.records);
+          this.status = 'loadmore'
+          this.liveList.push(...res.data.result.records)
         } else {
-          this.status = "noMore";
+          this.status = 'noMore'
         }
         res.data.result.total >
         this.params[this.current].pageNumber *
           this.params[this.current].pageSize
-          ? (this.status = "loadmore")
-          : (this.status = "noMore");
+          ? (this.status = 'loadmore')
+          : (this.status = 'noMore')
 
-        console.log(this.status);
-        this.liveList.forEach((item) => {
+        console.log(this.status)
+        this.liveList.forEach(item => {
           if (item.roomGoodsList) {
-            item.roomGoodsList = JSON.parse(item.roomGoodsList);
+            item.roomGoodsList = JSON.parse(item.roomGoodsList)
           }
-        });
+        })
       }
     },
 
@@ -225,29 +268,29 @@ export default {
      */
     handleLivePlayer(val) {
       // #ifdef MP-WEIXIN
-      let roomId = val.roomId; // 填写具体的房间号，可通过下面【获取直播房间列表】 API 获取
+      let roomId = val.roomId // 填写具体的房间号，可通过下面【获取直播房间列表】 API 获取
       let customParams = encodeURIComponent(
-        JSON.stringify({ path: "pages/index/index", pid: 1 })
-      ); // 开发者在直播间页面路径上携带自定义参数，后续可以在分享卡片链接和跳转至商详页时获取，详见【获取自定义参数】、【直播间到商详页面携带参数】章节（上限600个字符，超过部分会被截断）
+        JSON.stringify({ path: 'pages/index/index', pid: 1 })
+      ) // 开发者在直播间页面路径上携带自定义参数，后续可以在分享卡片链接和跳转至商详页时获取，详见【获取自定义参数】、【直播间到商详页面携带参数】章节（上限600个字符，超过部分会被截断）
       uni.navigateTo({
         url:
-          "plugin-private://wx2b03c6e691cd7370/pages/live-player-plugin?room_id=" +
+          'plugin-private://wx2b03c6e691cd7370/pages/live-player-plugin?room_id=' +
           roomId +
-          "&custom_params=" +
+          '&custom_params=' +
           customParams,
-      });
+      })
       // #endif
 
       // #ifndef MP-WEIXIN
       uni.showToast({
-        title: "请从微信小程序中预览直播功能",
+        title: '请从微信小程序中预览直播功能',
         duration: 2000,
-        icon: "none",
-      });
+        icon: 'none',
+      })
       // #endif
     },
   },
-};
+}
 </script>
 
 <style lang="scss" scoped>

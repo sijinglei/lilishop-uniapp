@@ -1,6 +1,13 @@
 <template>
   <div class="form">
     <u-form :model="codeForm" ref="validateCodeForm">
+      <div class="left-quhao" @click="chosseArea">
+        <div>选择区号</div>
+        <div class="areacode rfont" v-if="areaItem">
+          <!-- <span class="iti-flag" :class="areaItem.area"></span> -->
+          <span>+{{ areaItem.code }}</span>
+        </div>
+      </div>
       <u-form-item class="cell" label-width="120" label="手机号" prop="mobile">
         <u-input
           maxlength="11"
@@ -93,15 +100,15 @@ export default {
       // 二维码登录验证规则
       codeRules: {
         // 手机号验证
-        mobile: [
-          {
-            validator: (rule, value, callback) => {
-              return this.$u.test.mobile(value)
-            },
-            message: '手机号码不正确',
-            trigger: ['blur'],
-          },
-        ],
+        // mobile: [
+        //   {
+        //     validator: (rule, value, callback) => {
+        //       return this.$u.test.mobile(value)
+        //     },
+        //     message: '手机号码不正确',
+        //     trigger: ['blur'],
+        //   },
+        // ],
         // 验证码验证
         code: [
           {
@@ -113,6 +120,7 @@ export default {
           },
         ],
       },
+      areaItem: null,
     }
   },
   // 必须要在onReady生命周期setRules，因为onLoad生命周期组件可能尚未创建完毕
@@ -138,7 +146,11 @@ export default {
             title: '正在获取验证码',
           })
 
-          let res = await sendMobile(this.codeForm.mobile)
+          let res = await sendMobile(
+            this.codeForm.mobile,
+            'LOGIN',
+            this.areaItem.code
+          )
 
           uni.hideLoading()
           // 这里此提示会被this.start()方法中的提示覆盖
@@ -159,9 +171,28 @@ export default {
         this.$refs.verification.hide()
       }
     },
+    $route: {
+      handler: function () {
+        this.getArea()
+      },
+      immediate: true,
+    },
   },
 
   methods: {
+    getArea() {
+      let obj = localStorage.getItem('areaItem')
+      if (obj) {
+        this.areaItem = JSON.parse(obj)
+      } else {
+        this.areaItem = { area: 'ca', code: '1' }
+      }
+    },
+    chosseArea() {
+      uni.navigateTo({
+        url: '/pages/mine/areacode/country',
+      })
+    },
     // 验证码验证
     verification(val) {
       this.flage = val == this.$store.state.verificationKey ? true : false
@@ -257,7 +288,15 @@ export default {
         }, 2000)
       }
 
-      if (!this.$u.test.mobile(this.codeForm.mobile)) {
+      // if (!this.$u.test.mobile(this.codeForm.mobile)) {
+      //   uni.showToast({
+      //     title: '请输入正确手机号',
+      //     icon: 'none',
+      //   })
+
+      //   return false
+      // }
+      if (!this.codeForm.mobile) {
         uni.showToast({
           title: '请输入正确手机号',
           icon: 'none',

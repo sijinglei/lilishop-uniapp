@@ -1,72 +1,70 @@
-
-
 <script>
 /**
  * vuex管理登录状态，具体可以参考官方登录模板示例
  */
-import { mapMutations } from "vuex";
-import APPUpdate from "@/plugins/APPUpdate";
-import { getClipboardData } from "@/js_sdk/h5-copy/h5-copy.js";
-import config from "@/config/config";
+import { mapMutations } from 'vuex'
+import APPUpdate from '@/plugins/APPUpdate'
+import { getClipboardData } from '@/js_sdk/h5-copy/h5-copy.js'
+import config from '@/config/config'
 // 悬浮球
 
 export default {
   data() {
     return {
       config,
-    };
+    }
   },
 
   /**
    * 监听返回
    */
   onBackPress(e) {
-    if (e.from == "backbutton") {
-      let routes = getCurrentPages();
-      let curRoute = routes[routes.length - 1].options;
-      routes.forEach((item) => {
+    if (e.from == 'backbutton') {
+      let routes = getCurrentPages()
+      let curRoute = routes[routes.length - 1].options
+      routes.forEach(item => {
         if (
-          item.route == "pages/tabbar/cart/cartList" ||
-          item.route.indexOf("pages/product/goods") != -1
+          item.route == 'pages/tabbar/cart/cartList' ||
+          item.route.indexOf('pages/product/goods') != -1
         ) {
           uni.redirectTo({
             url: item.route,
-          });
+          })
         }
-      });
+      })
 
       if (curRoute.addId) {
         uni.reLaunch({
-          url: "/pages/tabbar/cart/cartList",
-        });
+          url: '/pages/tabbar/cart/cartList',
+        })
       } else {
-        uni.navigateBack();
+        uni.navigateBack()
       }
-      return true; //阻止默认返回行为
+      return true //阻止默认返回行为
     }
   },
   methods: {
-    ...mapMutations(["login"]),
+    ...mapMutations(['login']),
   },
   onLaunch: function () {
     // #ifdef APP-PLUS
-    this.checkArguments(); // 检测启动参数
-    APPUpdate();
+    this.checkArguments() // 检测启动参数
+    APPUpdate()
 
     // 重点是以下： 一定要监听后台恢复 ！一定要
-    plus.globalEvent.addEventListener("newintent", (e) => {
-      this.checkArguments(); // 检测启动参数
-    });
+    plus.globalEvent.addEventListener('newintent', e => {
+      this.checkArguments() // 检测启动参数
+    })
     // #endif
 
     // #ifdef MP-WEIXIN
-    this.applyUpdateWeChat();
+    this.applyUpdateWeChat()
     // #endif
   },
 
   onShow() {
     // #ifndef H5
-    this.getClipboard();
+    this.getClipboard()
     // #endif
   },
   methods: {
@@ -74,64 +72,64 @@ export default {
      * 微信小程序版本提交更新版本 解决缓存问题
      */
     applyUpdateWeChat() {
-      const updateManager = uni.getUpdateManager();
+      const updateManager = uni.getUpdateManager()
 
       updateManager.onCheckForUpdate(function (res) {
         // 请求完新版本信息的回调
-      });
+      })
 
       updateManager.onUpdateReady(function (res) {
         uni.showModal({
-          title: "更新提示",
-          content: "发现新版本，是否重启应用？",
+          title: '更新提示',
+          content: '发现新版本，是否重启应用？',
           success(res) {
             if (res.confirm) {
               // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
-              updateManager.applyUpdate();
+              updateManager.applyUpdate()
             }
           },
-        });
-      });
+        })
+      })
       updateManager.onUpdateFailed(function (res) {
         // 新的版本下载失败
-      });
+      })
     },
 
     //  TODO 开屏广告 后续优化添加
     launch() {
       try {
         // 获取本地存储中launchFlag标识 开屏广告
-        const value = uni.getStorageSync("launchFlag");
+        const value = uni.getStorageSync('launchFlag')
         if (!value) {
           // this.$u.route("/pages/index/agreement");
         } else {
           //app启动时打开启动广告页
           var w = plus.webview.open(
-            "/hybrid/html/advertise/advertise.html",
-            "本地地址",
+            '/hybrid/html/advertise/advertise.html',
+            '本地地址',
             {
               top: 0,
               bottom: 0,
               zindex: 999,
             },
-            "fade-in",
+            'fade-in',
             500
-          );
+          )
           //设置定时器，4s后关闭启动广告页
           setTimeout(function () {
-            plus.webview.close(w);
-            APPUpdate();
-          }, 3000);
+            plus.webview.close(w)
+            APPUpdate()
+          }, 3000)
         }
       } catch (e) {
         // error
         uni.setStorage({
-          key: "launchFlag",
+          key: 'launchFlag',
           data: true,
           success: function () {
-            console.log("error时存储launchFlag");
+            console.log('error时存储launchFlag')
           },
-        });
+        })
       }
     },
 
@@ -139,30 +137,30 @@ export default {
      * 获取粘贴板数据
      */
     async getClipboard() {
-      let res = await getClipboardData();
+      let res = await getClipboardData()
       /**
        * 解析粘贴板数据
        */
       if (res.indexOf(config.shareLink) != -1) {
         uni.showModal({
-          title: "提示",
-          content: "检测到一个分享链接是否跳转？",
-          confirmText: "跳转",
+          title: '提示',
+          content: '检测到一个分享链接是否跳转？',
+          confirmText: '跳转',
           success: function (callback) {
             if (callback.confirm) {
-              const path = res.split(config.shareLink)[1];
-              if (path.indexOf("tabbar") != -1) {
+              const path = res.split(config.shareLink)[1]
+              if (path.indexOf('tabbar') != -1) {
                 uni.switchTab({
                   url: path,
-                });
+                })
               } else {
                 uni.navigateTo({
                   url: path,
-                });
+                })
               }
             }
           },
-        });
+        })
       }
     },
 
@@ -172,29 +170,29 @@ export default {
     checkArguments() {
       // #ifdef APP-PLUS
       setTimeout(() => {
-        const args = plus.runtime.arguments;
+        const args = plus.runtime.arguments
         if (args) {
-          const argsStr = decodeURIComponent(args);
-          const path = argsStr.split("//")[1];
-          if (path.indexOf("tabbar") != -1) {
+          const argsStr = decodeURIComponent(args)
+          const path = argsStr.split('//')[1]
+          if (path.indexOf('tabbar') != -1) {
             uni.switchTab({
               url: `/${path}`,
-            });
+            })
           } else {
             uni.navigateTo({
               url: `/${path}`,
-            });
+            })
           }
         }
-      });
+      })
       // #endif
     },
   },
-};
+}
 </script>
 
 <style lang="scss">
-@import "uview-ui/index.scss";
+@import 'uview-ui/index.scss';
 
 // -------适配底部安全区  苹果x系列刘海屏
 
@@ -217,5 +215,18 @@ body {
 }
 .flex1 {
   flex: 1; //必须父级设置flex
+}
+.line05 {
+  &::after {
+    content: ' ';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 1px;
+    border-top: 1px solid #cac7c7;
+    transform-origin: 0 0;
+    transform: scaleY(0.5);
+  }
 }
 </style>
